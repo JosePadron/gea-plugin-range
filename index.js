@@ -1,25 +1,26 @@
 /*
  * Copyright (c) 2014 General Electric
- *  
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- *  
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- * 
+ *
  */
 
 const RANGE_BASE = 0x5000;
 const UPPER_OVEN_BASE = 0x5100;
 const LOWER_OVEN_BASE = 0x5200;
+const OVEN_LIGHT_ERD = 0xF207;
 
 function Oven (appliance, base) {
     this.cookMode = appliance.erd({
@@ -38,58 +39,58 @@ function Oven (appliance, base) {
             "twoTempMinutes:UInt8:0"
         ]
     });
-    
+
     this.currentState = appliance.erd({
         erd: base++,
         format: "UInt8"
     });
-    
+
     this.delayTimeRemaining = appliance.erd({
         erd: base++,
         endian: "big",
         format: "UInt16"
     });
-    
+
     this.probeDisplayTemperature = appliance.erd({
         erd: base++,
         endian: "big",
         format: "Int16"
     });
-    
+
     this.cookTimeRemaining = appliance.erd({
         erd: base++,
         endian: "big",
         format: "UInt16"
     });
-    
+
     this.displayTimer = appliance.erd({
         erd: base++,
         endian: "big",
         format: "UInt16"
     });
-    
+
     this.userTemperatureOffset = appliance.erd({
         erd: base++,
         format: "Int8"
     });
-    
+
     this.probePresent = appliance.erd({
         erd: base++,
         format: "UInt8"
     });
-    
+
     this.elapsedCookTime = appliance.erd({
         erd: base++,
         endian: "big",
         format: "UInt32"
     });
-    
+
     this.displayTemperature = appliance.erd({
         erd: base++,
         endian: "big",
         format: "UInt16"
     });
-    
+
     this.remoteEnable = appliance.erd({
         erd: base++,
         format: "UInt8"
@@ -97,48 +98,53 @@ function Oven (appliance, base) {
 }
 
 function Range (bus, appliance, base) {
+    appliance.lightState = appliance.erd({
+      erd: OVEN_LIGHT_ERD,
+      format: "UInt8"
+    });
+
     appliance.twelveHourShutoff = appliance.erd({
         erd: base++,
         format: "UInt8"
     });
-    
+
     appliance.endTone = appliance.erd({
         erd: base++,
         format: "UInt8"
     });
-    
+
     appliance.lightBar = appliance.erd({
         erd: base++,
         format: "UInt8"
     });
-    
+
     appliance.convectionConversion = appliance.erd({
         erd: base++,
         format: "UInt8"
     });
-    
+
     appliance.elapsedOnTime = appliance.erd({
         erd: base++,
         endian: "big",
         format: "UInt32"
     });
-    
+
     appliance.activeFaultCodeStatus = appliance.erd({
         erd: base++,
         format: "Bytes@10"
     });
-    
+
     appliance.keyPressed = appliance.erd({
         erd: base++,
         format: "UInt8"
     });
-    
+
     appliance.ovenConfiguration = appliance.erd({
         erd: base++,
         endian: "big",
         format: "UInt16"
     });
-    
+
     appliance.ovenModeMinMaxTemperature = appliance.erd({
         erd: base++,
         endian: "big",
@@ -147,21 +153,21 @@ function Range (bus, appliance, base) {
             "minTemperature:UInt16",
         ]
     });
-    
+
     appliance.warmingDrawerState = appliance.erd({
         erd: base++,
         format: "UInt8"
     });
-    
+
     appliance.upperOven = new Oven(appliance, UPPER_OVEN_BASE);
     appliance.lowerOven = new Oven(appliance, LOWER_OVEN_BASE);
-    
+
     appliance.fctMode = appliance.command({
         command: 0xa0,
         readData: [ 0xff ],
         format: "UInt8"
     });
-    
+
     appliance.doorLock = appliance.command({
         command: 0xa4,
         format: [
@@ -169,11 +175,11 @@ function Range (bus, appliance, base) {
             "lowerOvenDoorLock:UInt8",
         ]
     });
-    
+
     appliance.resetEEPROM = function() {
         appliance.send(0xa5, []);
     };
-    
+
     appliance.elementStatus = appliance.command({
         writeCommand: 0xa6,
         readCommand: 0xa7,
@@ -182,7 +188,7 @@ function Range (bus, appliance, base) {
             "lowerOvenElementStatus:UInt8",
         ]
     });
-    
+
     appliance.convectionFan = appliance.command({
         writeCommand: 0xa8,
         readCommand: 0xa9,
@@ -193,7 +199,7 @@ function Range (bus, appliance, base) {
             "lowerOvenConvectionFanRotation:UInt8",
         ]
     });
-    
+
     appliance.coolingFan = appliance.command({
         writeCommand: 0xaa,
         readCommand: 0xab,
@@ -202,7 +208,7 @@ function Range (bus, appliance, base) {
             "lowerOvenCoolingFan:UInt8",
         ]
     });
-    
+
     appliance.coolingFanRevolutionsPerMinute = appliance.command({
         command: 0xac,
         endian: "big",
@@ -211,7 +217,7 @@ function Range (bus, appliance, base) {
             "lowerOvenCoolingFanRevolutionsPerMinute:UInt16",
         ]
     });
-    
+
     appliance.mainControlModuleStatus = appliance.command({
         command: 0xae,
         format: [
@@ -221,7 +227,7 @@ function Range (bus, appliance, base) {
             "lowerOvenErrors:Bytes@3"
         ]
     });
-    
+
     appliance.analogInputs = appliance.command({
         command: 0xaf,
         endian: "big",
@@ -234,7 +240,7 @@ function Range (bus, appliance, base) {
             "lowerOvenProbe:UInt16"
         ]
     });
-    
+
     appliance.inputStatus = appliance.command({
         command: 0xb1,
         endian: "big",
@@ -243,9 +249,9 @@ function Range (bus, appliance, base) {
             "lowerOvenInputStatus:UInt16"
         ]
     });
-    
+
     var userInterfaceBoard = bus.endpoint(0xf4, appliance.address);
-    
+
     appliance.keysCurrentlyPressed = userInterfaceBoard.command({
         command: 0xb3,
         readData: [0],
@@ -254,7 +260,7 @@ function Range (bus, appliance, base) {
             "keyBitmap:Bytes"
         ]
     });
-    
+
     appliance.latchedKeyPresses = userInterfaceBoard.command({
         command: 0xb3,
         readData: [1],
@@ -263,11 +269,11 @@ function Range (bus, appliance, base) {
             "keyBitmap:Bytes"
         ]
     });
-    
+
     appliance.clearLatchedKeyPresses = function() {
         userInterfaceBoard.send(0xb3, [2]);
     };
-    
+
     appliance.glassTouchErrors = userInterfaceBoard.command({
         command: 0xb3,
         readData: [3],
@@ -276,7 +282,7 @@ function Range (bus, appliance, base) {
             "keyBitmap:Bytes"
         ]
     });
-    
+
     appliance.leds = appliance.command({
         command: 0xb4,
         format: [
@@ -284,12 +290,12 @@ function Range (bus, appliance, base) {
             "lowerOvenLedStatus:Bytes@13"
         ]
     });
-    
+
     appliance.buzzerTone = appliance.command({
         command: 0xb5,
         format: "UInt8"
     });
-    
+
     return appliance;
 }
 
@@ -299,9 +305,9 @@ exports.plugin = function (bus, configuration, callback) {
             bus.emit("range", Range(bus, appliance, RANGE_BASE));
         });
     });
-    
+
     var create = bus.create;
-    
+
     bus.create = function (name, callback) {
         create(name, function (appliance) {
             if (name == "range") {
@@ -309,10 +315,10 @@ exports.plugin = function (bus, configuration, callback) {
                 appliance.version = configuration.version;
                 Range(bus, appliance, RANGE_BASE);
             }
-            
+
             callback(appliance);
         });
     };
-    
+
     callback(bus);
 };
