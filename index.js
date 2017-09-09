@@ -104,7 +104,7 @@ function Range (bus, appliance, base) {
     });
 
     appliance.twelveHourShutoff = appliance.erd({
-        erd: base++,
+        erd: OVEN_LIGHT_ERD,
         format: "UInt8"
     });
 
